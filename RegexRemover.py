@@ -2,47 +2,50 @@ import re
 from dataload import get_train_and_test_dataframes
 import warnings
 from concurrent.futures import ProcessPoolExecutor
+
 # Ignore the FutureWarning related to datasets
 warnings.filterwarnings("ignore", category=FutureWarning, module="datasets.table")
-df_train, df_test = get_train_and_test_dataframes()
+
 class TextStripper:
     def __init__(self):
         pass
 
-    def text_strip(self, column):
-        cleaned_text = ''
-        for row in column:           # Combine similar replacements
-            row = re.sub("[\t\r\n]+", ' ', str(row)).lower()  # remove escape characters
-
-            row = re.sub("(__+|-+|~+|\++)", ' ', str(row)).lower()  # remove repeating _, -, ~, or + characters
-            row = re.sub("(\.\.+)", ' ', str(row)).lower()  # remove repeating . characters
-
-            row = re.sub("\s+", ' ', str(row)).lower()  # remove multiple spaces
-
-            # Should always be last
-            row = re.sub("\s.\s", ' ', str(row)).lower()  # remove any single characters hanging between 2 spaces
-
-            cleaned_text += row
-
+    def text_strip(self, text):
+        cleaned_text = re.sub("[\t\r\n]+", ' ', str(text)).lower()  # remove escape characters
+        cleaned_text = re.sub("(__+|-+|~+|\++)", ' ', cleaned_text).lower()  # remove repeating _, -, ~, or + characters
+        cleaned_text = re.sub("(\.\.+)", ' ', cleaned_text).lower()  # remove repeating . characters
+        cleaned_text = re.sub("\s+", ' ', cleaned_text).lower()  # remove multiple spaces
+        cleaned_text = re.sub("\s.\s", ' ', cleaned_text).lower()  # remove any single characters hanging between 2 spaces
         return cleaned_text
 
-text_stripper = TextStripper()
+    def clean_columns(self, df, columns):
+        with ProcessPoolExecutor() as executor:
+            for column_name in columns:
+                df[column_name] = list(executor.map(self.text_strip, df[column_name]))
+        return df
 
-# Specify the column you want to clean
-text_column_name = 'document'  # Change this to the actual column name you want to clean
+def get_cleaned_data():
+    # Load the train and test DataFrames
+    df_train, df_test = get_train_and_test_dataframes()
 
-with ProcessPoolExecutor() as executor:
-    # Apply text_strip method to the specified column in df_train
-    df_train[text_column_name] = list(executor.map(text_stripper.text_strip, df_train[text_column_name]))
+    text_stripper = TextStripper()
 
-    # Apply text_strip method to the specified column in df_test
-    df_test[text_column_name] = list(executor.map(text_stripper.text_strip, df_test[text_column_name]))
+    # Specify the columns you want to clean
+    text_column_names = ['document', 'summary']  # Change these to the actual column names you want to clean
 
+    # Clean the text columns in both train and test DataFrames
+    df_train_cleaned = text_stripper.clean_columns(df_train.copy(), text_column_names)
+    df_test_cleaned = text_stripper.clean_columns(df_test.copy(), text_column_names)
 
+    return df_train_cleaned, df_test_cleaned
 
-# Print the cleaned DataFrames
-print("Cleaned Train Dataset:")
-print(df_train.head())
+if __name__ == "__main__":
+    # Get the cleaned DataFrames
+    cleaned_train_data, cleaned_test_data = get_cleaned_data()
 
-print("\nCleaned Test Dataset:")
-print(df_test.head())
+    # Print the cleaned DataFrames
+    print("Cleaned Train Dataset:")
+    print(cleaned_train_data.head())
+
+    print("\nCleaned Test Dataset:")
+    print(cleaned_test_data.head())

@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@44.195.37.83:22 key" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@44.213.148.78:22 key" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="ubuntu@18.233.93.104:22 key (2)">
         <serverdata>
           <mappings>
             <mapping deploy="/tmp/pycharm_project_293" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@3.239.244.14:22 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_458" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@44.193.205.115:22 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_138" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
@@ -20,6 +34,13 @@
         <serverdata>
           <mappings>
             <mapping deploy="/tmp/pycharm_project_60" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@44.213.148.78:22 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_203" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
