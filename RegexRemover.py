@@ -16,6 +16,10 @@ class TextStripper:
         cleaned_text = re.sub("(\.\.+)", ' ', cleaned_text).lower()  # remove repeating . characters
         cleaned_text = re.sub("\s+", ' ', cleaned_text).lower()  # remove multiple spaces
         cleaned_text = re.sub("\s.\s", ' ', cleaned_text).lower()  # remove any single characters hanging between 2 spaces
+        cleaned_text = re.sub(r'[^\w\s]', '', cleaned_text).lower() # remove punctuation
+        cleaned_text = re.sub(r'http\S+', '',cleaned_text).lower() # remove url
+        cleaned_text = re.sub(r'[{}()\[\]]', '', cleaned_text).lower()  # remove all types of braces
+
         return cleaned_text
 
     def clean_columns(self, df, columns):
