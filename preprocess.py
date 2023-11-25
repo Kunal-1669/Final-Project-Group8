@@ -77,12 +77,19 @@ def stem_tokens(tokens):
     ps = PorterStemmer()
     return [ps.stem(token) for token in tokens]
 
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+def lemmatize_words(tokens):
+    return ' '.join(lemmatizer.lemmatize(word) for word in tokens.split())
+
 
 def apply_preprocessing(df, text_cols):
     for col in text_cols:
         df[col] = df[col].apply(remove_stopwords)
         df[col] = df[col].apply(stem_tokens)
     return df
+
+
 
 
 def main():
