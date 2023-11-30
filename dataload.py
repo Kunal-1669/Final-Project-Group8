@@ -32,9 +32,11 @@ def get_train_and_test_dataframes():
     # Access the train_dataset and test_dataset
     train_data = data.get_train_dataset()
     test_data = data.get_test_dataset()
+    validation_data = data.get_validation_dataset()
 
     # Convert datasets to DataFrames
     df_train = pd.DataFrame(train_data)
     df_test = pd.DataFrame(test_data)
+    df_validation = pd.DataFrame(validation_data)
 
-    return df_train, df_test
+    return df_train, df_test, df_validation
