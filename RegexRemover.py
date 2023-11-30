@@ -30,7 +30,7 @@ class TextStripper:
 
 def get_cleaned_data():
     # Load the train and test DataFrames
-    df_train, df_test = get_train_and_test_dataframes()
+    df_train, df_test, df_validation = get_train_and_test_dataframes()
 
     text_stripper = TextStripper()
 
@@ -40,12 +40,13 @@ def get_cleaned_data():
     # Clean the text columns in both train and test DataFrames
     df_train_cleaned = text_stripper.clean_columns(df_train.copy(), text_column_names)
     df_test_cleaned = text_stripper.clean_columns(df_test.copy(), text_column_names)
+    df_validation_cleaned = text_stripper.clean_columns(df_validation.copy(), text_column_names)
 
-    return df_train_cleaned, df_test_cleaned
+    return df_train_cleaned, df_test_cleaned, df_validation_cleaned
 
 if __name__ == "__main__":
     # Get the cleaned DataFrames
-    cleaned_train_data, cleaned_test_data = get_cleaned_data()
+    cleaned_train_data, cleaned_test_data, cleaned_validation_data = get_cleaned_data()
 
     # Print the cleaned DataFrames
     print("Cleaned Train Dataset:")
@@ -53,3 +54,6 @@ if __name__ == "__main__":
 
     print("\nCleaned Test Dataset:")
     print(cleaned_test_data.head())
+
+    print("\nCleaned Validation Dataset:")
+    print(cleaned_validation_data.head())

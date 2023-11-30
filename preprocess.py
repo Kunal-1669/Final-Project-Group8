@@ -43,10 +43,11 @@ def lemmatize_words(tokens):
 
 def apply_preprocessing(df, text_cols):
     for col in text_cols:
+        df[col] = df[col].apply(multiprocess_tokenize)
         df[col] = df[col].apply(remove_stopwords)
         df[col] = df[col].apply(stem_tokens)
+        df[col] = df[col].apply(lemmatize_words)
     return df
-
 
 
 def train_word2vec_model(tokens_list):
@@ -55,21 +56,19 @@ def train_word2vec_model(tokens_list):
 
 
 def main():
-    cleaned_train_data, cleaned_test_data = get_cleaned_data()
+    cleaned_train_data, cleaned_test_data, cleaned_validation_data = get_cleaned_data()
 
     text_cols = ['document', 'summary']
 
-    # Tokenize
-    for col in text_cols:
-        cleaned_train_data[col] = multiprocess_tokenize(cleaned_train_data, col)
-
-    # Apply stopwords removal and stemming
+    # Apply preprocessing
     cleaned_train_data = apply_preprocessing(cleaned_train_data, text_cols)
+    cleaned_test_data = apply_preprocessing(cleaned_test_data,text_cols)
+    cleaned_validation_data = apply_preprocessing(cleaned_validation_data,text_cols)
 
-    print(cleaned_train_data)
-    #
-    # cleaned_text = (cleaned_train_data['document'] + ' ' + cleaned_train_data['summary']).tolist()
-    # model = train_word2vec_model(cleaned_text)
+    print(cleaned_train_data.head())
+    print(cleaned_test_data.head())
+    print(cleaned_validation_data.head())
+
     cleaned_doc_text = cleaned_train_data['document'].tolist()
     cleaned_summary_text = cleaned_train_data['summary'].tolist()
 
