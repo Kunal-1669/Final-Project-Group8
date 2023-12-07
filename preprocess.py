@@ -6,8 +6,10 @@ import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from gensim.models import Word2Vec
+import warnings
+warnings.filterwarnings("ignore")
 
-
+import nltk
 def tokenize_column(column):
     return column.apply(word_tokenize)
 
@@ -43,7 +45,7 @@ def lemmatize_words(tokens):
 
 def apply_preprocessing(df, text_cols):
     for col in text_cols:
-        df[col] = df[col].apply(multiprocess_tokenize)
+        df[col] = multiprocess_tokenize(df,col)
         df[col] = df[col].apply(remove_stopwords)
         df[col] = df[col].apply(stem_tokens)
         df[col] = df[col].apply(lemmatize_words)
@@ -53,6 +55,12 @@ def apply_preprocessing(df, text_cols):
 def train_word2vec_model(tokens_list):
     model = Word2Vec(tokens_list, vector_size=100, window=5, min_count=1, workers=4)
     return model
+
+# Embedding text with Word2Vec
+def embed_with_word2vec(model, df, cols):
+    for col in cols:
+        df[col] = df[col].apply(lambda x: [model.wv[word] for word in x if word in model.wv])
+    return df
 
 
 def main():
@@ -69,23 +77,19 @@ def main():
     print(cleaned_test_data.head())
     print(cleaned_validation_data.head())
 
-    cleaned_doc_text = cleaned_train_data['document'].tolist()
-    cleaned_summary_text = cleaned_train_data['summary'].tolist()
+    # Train Word2Vec model on the training data
+    cleaned_text = cleaned_train_data['document'].tolist() + cleaned_train_data['summary'].tolist()
+    word2vec_model = train_word2vec_model(cleaned_text)
 
-    cleaned_text = cleaned_doc_text + cleaned_summary_text
-    model = train_word2vec_model(cleaned_text)
-    word_embeddings = model.wv
+    # Embed train, test, and validation data with the trained Word2Vec model
+    df_cleaned_embedded_train = embed_with_word2vec(word2vec_model, cleaned_train_data, text_cols)
+    df_cleaned_embedded_test = embed_with_word2vec(word2vec_model, cleaned_test_data, text_cols)
+    df_cleaned_embedded_val = embed_with_word2vec(word2vec_model, cleaned_validation_data, text_cols)
 
-    df_doc_embeddings = pd.DataFrame(cleaned_train_data['document'].apply(lambda x: [word_embeddings[word] for word in x]))
-    df_summary_embeddings = pd.DataFrame(cleaned_train_data['summary'].apply(lambda x: [word_embeddings[word] for word in x]))
-    df_all_embeddings = pd.concat([df_doc_embeddings, df_summary_embeddings], axis=1)
-    # print(df_all_embeddings)
-    # print(cleaned_train_data)
-    df_cleaned_embedded = pd.concat([cleaned_train_data, df_all_embeddings],axis=1)
-    return df_cleaned_embedded
+    return df_cleaned_embedded_train, df_cleaned_embedded_test,df_cleaned_embedded_val
 
 
 if __name__ == "__main__":
-    main()
+    df_train, df_test, df_val = main()
 
 #     main()
