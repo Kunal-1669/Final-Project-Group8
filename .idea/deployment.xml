@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@3.236.155.210:22" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="aws" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="AWS">
+      <paths name="aws">
         <serverdata>
           <mappings>
             <mapping deploy="/home/ubuntu" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ubuntu@3.236.155.210:22">
+      <paths name="aws (2)">
         <serverdata>
           <mappings>
             <mapping deploy="/home/ubuntu" local="$PROJECT_DIR$" />
