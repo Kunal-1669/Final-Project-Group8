@@ -2,10 +2,10 @@ import re
 from dataload import get_train_and_test_dataframes
 import warnings
 from concurrent.futures import ProcessPoolExecutor
-
+from functools import partial
 # Ignore the FutureWarning related to datasets
 warnings.filterwarnings("ignore", category=FutureWarning, module="datasets.table")
-
+#
 class TextStripper:
     def __init__(self):
         pass
@@ -22,15 +22,25 @@ class TextStripper:
 
         return cleaned_text
 
+    # def clean_columns(self, df, columns):
+    #     with ProcessPoolExecutor() as executor:
+    #         for column_name in columns:
+    #             df[column_name] = list(executor.map(self.text_strip, df[column_name]))
+    #     return df
+    def clean_column(self, column):
+        with ProcessPoolExecutor() as executor:
+            return list(executor.map(self.text_strip, column))
+
     def clean_columns(self, df, columns):
         with ProcessPoolExecutor() as executor:
             for column_name in columns:
-                df[column_name] = list(executor.map(self.text_strip, df[column_name]))
+                df[column_name] = self.clean_column(df[column_name])
         return df
+
 
 def get_cleaned_data():
     # Load the train and test DataFrames
-    df_train, df_test, df_validation = get_train_and_test_dataframes()
+    df_train, df_test = get_train_and_test_dataframes()
 
     text_stripper = TextStripper()
 
@@ -38,15 +48,15 @@ def get_cleaned_data():
     text_column_names = ['document', 'summary']  # Change these to the actual column names you want to clean
 
     # Clean the text columns in both train and test DataFrames
-    df_train_cleaned = text_stripper.clean_columns(df_train.copy(), text_column_names)
-    df_test_cleaned = text_stripper.clean_columns(df_test.copy(), text_column_names)
-    df_validation_cleaned = text_stripper.clean_columns(df_validation.copy(), text_column_names)
+    df_train_cleaned = text_stripper.clean_columns(df_train, text_column_names)
+    df_test_cleaned = text_stripper.clean_columns(df_test, text_column_names)
+    # df_validation_cleaned = text_stripper.clean_columns(df_validation.copy(), text_column_names)
 
-    return df_train_cleaned, df_test_cleaned, df_validation_cleaned
+    return df_train_cleaned, df_test_cleaned
 
 if __name__ == "__main__":
     # Get the cleaned DataFrames
-    cleaned_train_data, cleaned_test_data, cleaned_validation_data = get_cleaned_data()
+    cleaned_train_data, cleaned_test_data= get_cleaned_data()
 
     # Print the cleaned DataFrames
     print("Cleaned Train Dataset:")
@@ -56,4 +66,3 @@ if __name__ == "__main__":
     print(cleaned_test_data.head())
 
     print("\nCleaned Validation Dataset:")
-    print(cleaned_validation_data.head())

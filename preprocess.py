@@ -8,9 +8,10 @@ from nltk.stem import PorterStemmer
 from gensim.models import Word2Vec
 import warnings
 warnings.filterwarnings("ignore")
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+import numpy as np
+# nltk.download('punkt')
+# nltk.download('stopwords')
+# nltk.download('wordnet')
 
 import nltk
 def tokenize_column(column):
@@ -34,7 +35,7 @@ def multiprocess_tokenize(df, col_name):
 
 
 def remove_stopwords(tokens):
-    print("3")
+    # print("3")
     stop_words = set(stopwords.words('english'))
     return [token for token in tokens if token.lower() not in stop_words]
 
@@ -49,7 +50,7 @@ from nltk.stem import WordNetLemmatizer
 # def lemmatize_words(tokens):
 #     return ' '.join(lemmatizer.lemmatize(word) for word in tokens.split())
 def lemmatize_words(tokens):
-    print("5")
+    # print("5")
     lemmatizer = WordNetLemmatizer()
     return [lemmatizer.lemmatize(word) for word in tokens]
 
@@ -69,42 +70,65 @@ def train_word2vec_model(tokens_list):
     return model
 
 # Embedding text with Word2Vec
-def embed_with_word2vec(model, df, cols):
-    print('7')
-    for col in cols:
-        df[col] = df[col].apply(lambda x: [model.wv[word] for word in x if word in model.wv])
-    return df
+# def embed_with_word2vec(model, df, cols):
+#     # print('7')
+#     for col in cols:
+#         df[col] = df[col].apply(lambda x: [model.wv[word] for word in x if word in model.wv])
+#     return df
+def embed_with_word2vec(model, tokens_list):
+    return [model.wv[word] for word in tokens_list if word in model.wv]
 
 
-def main():
+def df_clean():
     print("test")
-    cleaned_train_data, cleaned_test_data, cleaned_validation_data = get_cleaned_data()
+    cleaned_train_data, cleaned_test_data = get_cleaned_data()
     print("regex done")
 
     text_cols = ['document', 'summary']
+    num_samples = 1000
 
+    # Sample the data
+    sampled_train_data = cleaned_train_data.sample(n=num_samples, random_state=42)
+    sampled_train_data.reset_index(drop=True, inplace=True)
     # Apply preprocessing
-    cleaned_train_data = apply_preprocessing(cleaned_train_data, text_cols)
+    cleaned_train_data = apply_preprocessing(sampled_train_data, text_cols)
     cleaned_test_data = apply_preprocessing(cleaned_test_data,text_cols)
-    cleaned_validation_data = apply_preprocessing(cleaned_validation_data,text_cols)
+    # cleaned_validation_data = apply_preprocessing(cleaned_validation_data,text_cols)
 
-    print(cleaned_train_data.head())
-    print(cleaned_test_data.head())
-    print(cleaned_validation_data.head())
+    # print(cleaned_train_data.head())
+    # print(cleaned_test_data.head())
+    # # print(cleaned_validation_data.head())
 
     # Train Word2Vec model on the training data
     cleaned_text = cleaned_train_data['document'].tolist() + cleaned_train_data['summary'].tolist()
     word2vec_model = train_word2vec_model(cleaned_text)
 
     # Embed train, test, and validation data with the trained Word2Vec model
-    df_cleaned_embedded_train = embed_with_word2vec(word2vec_model, cleaned_train_data, text_cols)
-    df_cleaned_embedded_test = embed_with_word2vec(word2vec_model, cleaned_test_data, text_cols)
-    df_cleaned_embedded_val = embed_with_word2vec(word2vec_model, cleaned_validation_data, text_cols)
+    cleaned_train_data['document_embedding'] = cleaned_train_data['document'].apply(
+        lambda x: embed_with_word2vec(word2vec_model, x))
+    cleaned_train_data['summary_embedding'] = cleaned_train_data['summary'].apply(
+        lambda x: embed_with_word2vec(word2vec_model, x))
+    # df_cleaned_embedded_val = embed_with_word2vec(word2vec_model, cleaned_validation_data, text_cols)
+    # cleaned_test_data['document_embedding'] = cleaned_test_data['document'].apply(embed_with_word2vec(word2vec_model, cleaned_train_data, text_cols))
+    # cleaned_test_data['summary_embedding'] = cleaned_test_data['summary'].apply(embed_with_word2vec(word2vec_model, cleaned_test_data, text_cols))
+    cleaned_test_data['document_embedding'] = cleaned_test_data['document'].apply(
+        lambda x: embed_with_word2vec(word2vec_model, x))
+    cleaned_test_data['summary_embedding'] = cleaned_test_data['summary'].apply(
+        lambda x: embed_with_word2vec(word2vec_model, x))
+    cleaned_train_data['document_embedding'] = cleaned_train_data['document_embedding'].apply(lambda x: np.array(x).astype(float))
+    cleaned_train_data['summary_embedding'] = cleaned_train_data['summary_embedding'].apply(lambda x: np.array(x).astype(float))
+
+    # cleaned_test_data['document_embedding'] = cleaned_test_data['document_embedding'].apply(lambda x: np.array(x).astype(float))
+    # cleaned_test_data['summary_embedding'] = cleaned_test_data['summary_embedding'].apply(lambda x: np.array(x).astype(float))
+
 
     print('word2vec done')
 
-    return df_cleaned_embedded_train, df_cleaned_embedded_test,df_cleaned_embedded_val
+    return cleaned_train_data, cleaned_test_data
 
 
-if __name__ == "__main__":
-    df_cleaned_embedded_train, df_cleaned_embedded_test,df_cleaned_embedded_val = main()
+# if __name__ == "__main__":
+#     df_cleaned_embedded_train, df_cleaned_embedded_test = main()
+df_train,df_test=df_clean()
+df_train.to_csv('cleaned_train_data.csv', index=False)
+df_test.to_csv('cleaned_test_data.csv', index=False)

@@ -32,11 +32,18 @@ def get_train_and_test_dataframes():
     # Access the train_dataset and test_dataset
     train_data = data.get_train_dataset()
     test_data = data.get_test_dataset()
-    validation_data = data.get_validation_dataset()
+    # validation_data = data.get_validation_dataset()
 
     # Convert datasets to DataFrames
     df_train = pd.DataFrame(train_data)
     df_test = pd.DataFrame(test_data)
-    df_validation = pd.DataFrame(validation_data)
+    # df_validation = pd.DataFrame(validation_data)
+    # df_train = df_train.sample(n=10000, random_state=42)
+    # df_test = df_test.sample
+    # print(type(df_train))
+    # print(type(df_test))
+    # return df_train_sampled, df_test_sampled
 
-    return df_train, df_test, df_validation
+    return df_train, df_test
+            # , df_validation
+# print((get_train_and_test_dataframes()))

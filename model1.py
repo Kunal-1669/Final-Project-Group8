@@ -1,5 +1,6 @@
 import random
-from preprocess import df_clean
+# from preprocess import main
+import preprocess
 import torch
 from collections import Counter
 from torch.utils.data import TensorDataset, DataLoader
@@ -32,7 +33,7 @@ class Seq2SeqLSTM(nn.Module):
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, src, trg, teacher_forcing_ratio=0.5):
-        batch_size = 16
+        batch_size = trg.shape[0]
         trg_len = trg.shape[1]
         trg_vocab_size = self.fc.out_features
 
@@ -79,15 +80,16 @@ def create_vocabulary(texts):
 
 # df_cleaned_embedded_train, df_cleaned_embedded_test = main()
 
-df_cleaned_embedded_train = df_clean()
-df_cleaned_embedded_test = df_clean()
-
+df_cleaned_embedded_test = preprocess.df_clean()
+df_cleaned_embedded_train, _ = preprocess.df_clean()
+df_cleaned_embedded_train = df_cleaned_embedded_train.sample(n=1000, random_state=42)
+df_cleaned_embedded_train.reset_index(drop=True, inplace=True)
 
 # Convert embedded data to tensors
 def get_tensors(df):
     # Assuming 'document_vectors' and 'summary_vectors' are the columns with embeddings
-    documents = torch.tensor(np.stack(df['document_vectors'].values))
-    summaries = torch.tensor(np.stack(df['summary_vectors'].values))
+    documents = torch.tensor(np.stack(df['document'].values))
+    summaries = torch.tensor(np.stack(df['summary'].values))
     return documents, summaries
 
 
