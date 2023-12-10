@@ -1,17 +1,27 @@
+import re
 import torch
-from transformers import T5ForConditionalGeneration, T5Tokenizer, Trainer, TrainingArguments
+from transformers import T5Tokenizer, T5ForConditionalGeneration, Trainer, TrainingArguments
 from datasets import load_dataset
+from rouge import Rouge
 
 # Set the device to GPU if available, else CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load the Multi-News dataset
+# Load the dataset
 dataset = load_dataset("multi_news")
 
-# Initialize the T5 tokenizer and model
-tokenizer = T5Tokenizer.from_pretrained('t5-small')
-model = T5ForConditionalGeneration.from_pretrained('t5-small').to(device)  # Move model to the device
+def clean_text(text):
+    # Remove punctuation (excluding numbers) and convert to lowercase
+    text = re.sub(r'[^\w\s\d]', '', text).lower()
+    return text.strip()
 
+# Apply cleaning to the dataset
+dataset = dataset.map(lambda x: {'document': clean_text(x['document']), 'summary': clean_text(x['summary'])})
+
+# Initialize the T5 tokenizer and model
+model_name = 't5-small'
+tokenizer = T5Tokenizer.from_pretrained(model_name)
+model = T5ForConditionalGeneration.from_pretrained(model_name).to(device)
 
 # Preprocess the data
 def preprocess_function(examples):
@@ -20,12 +30,11 @@ def preprocess_function(examples):
     with tokenizer.as_target_tokenizer():
         labels = tokenizer(examples["summary"], max_length=128, truncation=True, padding="max_length")
 
-    # Convert inputs and labels to tensors and move them to the device
-    model_inputs = {k: torch.tensor(v).to(device) for k, v in model_inputs.items()}
-    model_inputs["labels"] = torch.tensor(labels["input_ids"]).to(device)
+    # Convert inputs and labels to tensors
+    model_inputs = {k: torch.tensor(v) for k, v in model_inputs.items()}
+    model_inputs["labels"] = torch.tensor(labels["input_ids"])
 
     return model_inputs
-
 
 tokenized_datasets = dataset.map(preprocess_function, batched=True)
 
@@ -33,10 +42,10 @@ tokenized_datasets = dataset.map(preprocess_function, batched=True)
 training_args = TrainingArguments(
     output_dir="./results",
     evaluation_strategy="epoch",
-    learning_rate=2e-5,
+    learning_rate=3e-5,
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
-    num_train_epochs=1,
+    num_train_epochs=10,
     weight_decay=0.01,
 )
 
@@ -50,7 +59,6 @@ trainer = Trainer(
 
 # Train the model
 trainer.train()
-
 
 # Example usage for summarization
 def summarize(text, max_length=150):
