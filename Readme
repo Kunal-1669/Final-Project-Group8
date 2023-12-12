@@ -1,5 +1,6 @@
 Downlaod model from this link:
 https://drive.google.com/drive/folders/1d4tX6jAC3gVLpDA97fo5GcO7MOgOWqLG?usp=drive_link
+
 model_path = '/Users/kunal/Desktop/model_t5'
 
 change the model_path to the path where you saved the model
