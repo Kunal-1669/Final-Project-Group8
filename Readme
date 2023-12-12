@@ -1,0 +1,10 @@
+Downlaod model from this link:
+https://drive.google.com/drive/folders/1d4tX6jAC3gVLpDA97fo5GcO7MOgOWqLG?usp=drive_link
+model_path = '/Users/kunal/Desktop/model_t5'
+
+change the model_path to the path where you saved the model
+
+
+use app.py to generate summary where the user copy text from article the code and the app just returns the summary
+app2.py is used to get ROUGE score and you need to provide reference summary for getting the scores
+In app3.py user just need to provide link to article and the app will generate summary
